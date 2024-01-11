@@ -1,6 +1,6 @@
 Name:           vulkan-validation-layers
-Version:        1.3.239.0
-Release:        2%{?dist}
+Version:        1.3.250.1
+Release:        1%{?dist}
 Summary:        Vulkan validation layers
 
 License:        ASL 2.0
@@ -75,6 +75,9 @@ developing applications that use %{name}.
 %{_libdir}/libVkLayer_utils.a
 
 %changelog
+* Wed Jul 12 2023 Dave Airlie <airlied@redhat.com> - 1.3.250.1-1
+- Update to 1.3.250.1
+
 * Wed Feb 15 2023 Dave Airlie <airlied@redhat.com> - 1.3.239.0-2
 - Try and fix validation layer exports
 
