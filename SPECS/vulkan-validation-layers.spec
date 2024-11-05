@@ -1,15 +1,22 @@
 Name:           vulkan-validation-layers
-Version:        1.3.250.1
-Release:        1%{?dist}
+Version:        1.3.283.0
+Release:        3%{?dist}
 Summary:        Vulkan validation layers
 
 License:        ASL 2.0
 URL:            https://github.com/KhronosGroup/Vulkan-ValidationLayers
-Source0:        %url/archive/sdk-%{version}.tar.gz#/Vulkan-ValidationLayers-sdk-%{version}.tar.gz
+Source0:        %url/archive/vulkan-sdk-%{version}.tar.gz#/Vulkan-ValidationLayers-sdk-%{version}.tar.gz
+
+# vulkan-utility-libraries is required but not available in CentOS/RHEL 8
+Source1:        https://github.com/KhronosGroup/Vulkan-Utility-Libraries/archive/vulkan-sdk-%{version}.tar.gz#/Vulkan-Utility-Libraries-sdk-%{version}.tar.gz
+
+Obsoletes:      vulkan-validation-layers-devel <= 1.3.250.1-1
+Provides:       vulkan-validation-layers-devel = %{version}-%{release}
+Provides:       vulkan-validation-layers-devel%{?_isa} = %{version}-%{release}
 
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
-BuildRequires:  cmake
+BuildRequires:  cmake3
 BuildRequires:  glslang-devel
 BuildRequires:  ninja-build
 BuildRequires:  python%{python3_pkgversion}-devel
@@ -25,40 +32,41 @@ BuildRequires:  pkgconfig(x11)
 BuildRequires:  pkgconfig(xrandr)
 BuildRequires:  pkgconfig(xcb)
 
-Requires: spirv-tools-libs >= 2019.4-1.20191109
 %description
 Vulkan validation layers
 
-%package        devel
-Summary:        Development files for %{name}
-Requires:       %{name}%{?_isa} = %{version}-%{release}
-Requires:       vulkan-headers
-
-%description    devel
-The %{name}-devel package contains libraries and header files for
-developing applications that use %{name}.
-
 %prep
-%autosetup -p1 -n Vulkan-ValidationLayers-sdk-%{version}
+%autosetup -p1 -n Vulkan-ValidationLayers-vulkan-sdk-%{version}
 
+# Extract vulkan-utility-libraries in "utility"
+mkdir -p utility
+tar -xvf %{SOURCE1} -C utility --strip-components=1
 
 %build
+# vulkan-utility-libraries can't be compiled and linked because it contains .a
+# libraries and check-buildroot would complain about debug symbols containing
+# "/builddir/build/BUILDROOT" paths.
+# Instead, add vulkan-utility-libraries as a subproject
+echo "add_subdirectory(utility)" >> CMakeLists.txt
+
 # Decrease debuginfo verbosity to reduce memory consumption even more
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
+%global optflags %(echo %{optflags} | sed 's/-O2 /-O1 /')
 
-
-%cmake -GNinja \
-        -DCMAKE_BUILD_TYPE=Release \
+%cmake3 -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_WERROR=OFF \
         -DGLSLANG_INSTALL_DIR=%{_prefix} \
         -DBUILD_LAYER_SUPPORT_FILES:BOOL=ON \
         -DUSE_ROBIN_HOOD_HASHING:BOOL=OFF \
-        -DSPIRV_HEADERS_INCLUDE_DIR=%{_includedir} \
-        -DCMAKE_INSTALL_INCLUDEDIR=%{_includedir}/vulkan/ .
-%ninja_build
+        -DSPIRV_HEADERS_INSTALL_DIR=%{_prefix} \
+        -DVULKAN_HEADERS_INSTALL_DIR=%{_prefix} \
+        -DCMAKE_INSTALL_INCLUDEDIR=%{_includedir} \
+        -DCMAKE_CXX_STANDARD_LIBRARIES="-lstdc++fs"
+%cmake_build
 
 
 %install
-%ninja_install
+%cmake_install
 
 
 %ldconfig_scriptlets
@@ -70,11 +78,19 @@ developing applications that use %{name}.
 %{_datadir}/vulkan/explicit_layer.d/*.json
 %{_libdir}/libVkLayer_*.so
 
-%files devel
-%{_includedir}/vulkan/
-%{_libdir}/libVkLayer_utils.a
-
 %changelog
+* Fri Sep 13 2024 José Expósito <jexposit@redhat.com> - 1.3.283.0-3
+- Provides/Obsoletes vulkan-validation-layers-devel
+  Resolves: https://issues.redhat.com/browse/RHEL-54290
+
+* Fri Sep 13 2024 José Expósito <jexposit@redhat.com> - 1.3.283.0-2
+- Link stdc++fs
+  Resolves: https://issues.redhat.com/browse/RHEL-54290
+
+* Wed Sep 11 2024 José Expósito <jexposit@redhat.com> - 1.3.283.0-1
+- Update to 1.3.283.0 SDK
+  Resolves: https://issues.redhat.com/browse/RHEL-54290
+
 * Wed Jul 12 2023 Dave Airlie <airlied@redhat.com> - 1.3.250.1-1
 - Update to 1.3.250.1
 
