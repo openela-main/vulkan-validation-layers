@@ -1,6 +1,6 @@
 Name:           vulkan-validation-layers
-Version:        1.3.268.0
-Release:        2%{?dist}
+Version:        1.3.283.0
+Release:        1%{?dist}
 Summary:        Vulkan validation layers
 
 License:        ASL 2.0
@@ -39,6 +39,7 @@ Vulkan validation layers
 %global optflags %(echo %{optflags} | sed 's/-O2 /-O1 /')
 
 %cmake3 -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_WERROR=OFF \
         -DGLSLANG_INSTALL_DIR=%{_prefix} \
         -DBUILD_LAYER_SUPPORT_FILES:BOOL=ON \
         -DUSE_ROBIN_HOOD_HASHING:BOOL=OFF \
@@ -62,6 +63,9 @@ Vulkan validation layers
 %{_libdir}/libVkLayer_*.so
 
 %changelog
+* Tue May 28 2024 José Expósito <jexposit@redhat.com> - 1.3.283.0-1
+- Update to 1.3.283.0 SDK
+
 * Tue Jan 23 2024 José Expósito <jexposit@redhat.com> - 1.3.268.0-2
 - Remove dependency to vulkan-utility-libraries-devel
 
