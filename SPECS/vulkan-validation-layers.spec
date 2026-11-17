@@ -1,5 +1,5 @@
 Name:           vulkan-validation-layers
-Version:        1.4.328.1
+Version:        1.4.341.0
 Release:        1%{?dist}
 Summary:        Vulkan validation layers
 
@@ -9,7 +9,7 @@ Source0:        %url/archive/vulkan-sdk-%{version}.tar.gz#/Vulkan-ValidationLaye
 
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
-BuildRequires:  cmake3
+BuildRequires:  cmake
 BuildRequires:  glslang-devel
 BuildRequires:  ninja-build
 BuildRequires:  python%{python3_pkgversion}-devel
@@ -38,7 +38,7 @@ Vulkan validation layers
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 %global optflags %(echo %{optflags} | sed 's/-O2 /-O1 /')
 
-%cmake3 -DCMAKE_BUILD_TYPE=Release \
+%cmake -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_WERROR=OFF \
         -DGLSLANG_INSTALL_DIR=%{_prefix} \
         -DBUILD_LAYER_SUPPORT_FILES:BOOL=ON \
@@ -63,6 +63,9 @@ Vulkan validation layers
 %{_libdir}/libVkLayer_*.so
 
 %changelog
+* Thu May 21 2026 Anusha Srivatsa <asrivats@redhat.com> - 1.4.341.0-1
+- Update to 1.4.341.0 SDK
+
 * Thu 08 2026 José Expósito <jexposit@redhat.com> - 1.4.328.1-1
 - Update to 1.4.328.1 SDK
 
